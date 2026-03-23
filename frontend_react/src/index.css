@@ -1,0 +1,53 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+html,
+body,
+#root {
+  min-height: 100%;
+}
+
+body {
+  @apply bg-cosmos text-glow-moon font-sans antialiased;
+  margin: 0;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 20% 20%, rgba(255,255,255,0.12) 0 1px, transparent 1px),
+    radial-gradient(circle at 80% 18%, rgba(255,255,255,0.10) 0 1px, transparent 1px),
+    radial-gradient(circle at 76% 76%, rgba(255,255,255,0.08) 0 1px, transparent 1px),
+    radial-gradient(circle at 45% 68%, rgba(255,255,255,0.06) 0 1px, transparent 1px);
+  opacity: 0.6;
+}
+
+@layer components {
+  .glass-card {
+    @apply rounded-3xl border border-white/10 bg-white/5 shadow-card backdrop-blur-xl;
+  }
+
+  .section-label {
+    @apply mb-3 text-xs uppercase tracking-[0.28em] text-glow-gold/80;
+  }
+
+  .field-shell {
+    @apply rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm text-glow-moon placeholder:text-slate-400 focus:border-glow-violet/60 focus:outline-none focus:ring-2 focus:ring-glow-violet/20;
+  }
+
+  .primary-button {
+    @apply inline-flex items-center justify-center rounded-2xl border border-white/10 bg-gradient-to-r from-glow-violet to-glow-indigo px-5 py-3 font-medium text-white shadow-aura transition duration-200 hover:scale-[1.01] disabled:cursor-not-allowed disabled:opacity-60;
+  }
+
+  .secondary-button {
+    @apply inline-flex items-center justify-center rounded-2xl border border-glow-gold/20 bg-white/5 px-4 py-3 text-sm font-medium text-glow-moon transition hover:border-glow-gold/40 hover:bg-white/10 disabled:opacity-50;
+  }
+}
