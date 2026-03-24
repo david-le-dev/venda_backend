@@ -59,13 +59,9 @@ class AstrologyService:
             f"{utc_dt.hour}:{utc_dt.minute}:{utc_dt.second}"
         )
 
-        # Compute obliquity of the ecliptic for this date
-        ecl_ref = ephem.Ecliptic(ephem.Sun(obs), epoch=obs.date)
-        obliquity_deg = math.degrees(float(ephem.Sun(obs).g))  # fallback
-        try:
-            obliquity_deg = math.degrees(float(ecl_ref.eps))
-        except AttributeError:
-            obliquity_deg = 23.4393  # J2000 value
+        # Obliquity of the ecliptic for this date (Jean Meeus formula, accurate to 0.01°)
+        T = (ephem.julian_date(obs.date) - 2451545.0) / 36525.0
+        obliquity_deg = 23.4392911 - 0.013004167 * T
 
         # Compute planet ecliptic longitudes
         sign_indices: dict[str, int] = {}
@@ -136,7 +132,7 @@ class AstrologyService:
 
         # ASC should be 90°–270° ahead of MC; flip 180° if not
         diff = (asc - mc) % 360
-        if diff < 90 or diff > 270:
+        if diff < 90 or diff >= 270:
             asc = (asc + 180) % 360
 
         return asc
