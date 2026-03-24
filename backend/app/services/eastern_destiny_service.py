@@ -59,6 +59,17 @@ class EasternDestinyService:
         "Gui": 8,
     }
     ELEMENTS = ["Wood", "Fire", "Earth", "Metal", "Water"]
+    # Nạp Âm element for each pair of years in the 60-year sexagenary cycle.
+    # Index = ((year - 4) % 60) // 2
+    # Pair 0: Giáp Tý/Ất Sửu, Pair 1: Bính Dần/Đinh Mão, ...
+    NAP_AM_ELEMENTS = [
+        "Metal", "Fire",  "Wood",  "Earth", "Metal",  # pairs 0-4  (1984-1993)
+        "Fire",  "Water", "Earth", "Metal", "Wood",   # pairs 5-9  (1994-2003)
+        "Water", "Earth", "Fire",  "Wood",  "Water",  # pairs 10-14 (2004-2013)
+        "Metal", "Fire",  "Wood",  "Earth", "Metal",  # pairs 15-19 (2014-2023)
+        "Fire",  "Water", "Earth", "Metal", "Wood",   # pairs 20-24 (2024-2033)
+        "Water", "Earth", "Fire",  "Wood",  "Water",  # pairs 25-29 (2034-2043)
+    ]
     REFERENCE_TIMEZONE = "Asia/Shanghai"
     JIA_ZI_DAY_REFERENCE = date(1984, 2, 2)
     PRINCIPAL_SOLAR_TERMS = (
@@ -102,12 +113,13 @@ class EasternDestinyService:
         timezone_name, timezone_confidence = resolve_timezone(birth_place)
         born_at = self._birth_datetime(birth_date, birth_time, timezone_name)
 
-        year_stem, year_branch = self._year_pillar(born_on, born_at, timezone_name)
+        year_stem, year_branch, effective_year = self._year_pillar(born_on, born_at, timezone_name)
         month_stem, month_branch = self._month_pillar(born_on, born_at, year_stem, timezone_name)
         day_stem, day_branch = self._day_pillar(born_on, birth_time)
         hour_stem, hour_branch = self._hour_pillar(birth_time, day_stem)
 
-        dominant_elements = list(dict.fromkeys([self.ELEMENT_BY_STEM[year_stem], self.ELEMENT_BY_STEM[day_stem]]))
+        nap_am = self._nap_am_element(effective_year)
+        dominant_elements = list(dict.fromkeys([nap_am, self.ELEMENT_BY_STEM[day_stem]]))
         if len(dominant_elements) == 1:
             dominant_elements.append(self.ELEMENT_BY_STEM[month_stem])
         weaker_elements = [element for element in self.ELEMENTS if element not in dominant_elements][:2]
@@ -136,13 +148,17 @@ class EasternDestinyService:
             confidence_note=confidence_note,
         )
 
-    def _year_pillar(self, born_on: date, born_at: datetime | None, timezone_name: str | None) -> tuple[str, str]:
+    def _year_pillar(self, born_on: date, born_at: datetime | None, timezone_name: str | None) -> tuple[str, str, int]:
         li_chun = self._principal_term_datetime(born_on.year, "li_chun", timezone_name)
         has_crossed = born_at >= li_chun if born_at else born_on >= li_chun.date()
         effective_year = born_on.year if has_crossed else born_on.year - 1
         stem = self.HEAVENLY_STEMS[(effective_year - 4) % 10]
         branch = self.EARTHLY_BRANCHES[(effective_year - 4) % 12]
-        return stem, branch
+        return stem, branch, effective_year
+
+    def _nap_am_element(self, effective_year: int) -> str:
+        pair = ((effective_year - 4) % 60) // 2
+        return self.NAP_AM_ELEMENTS[pair]
 
     def _month_pillar(
         self,
